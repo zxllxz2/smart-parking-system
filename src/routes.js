@@ -64,7 +64,7 @@ const routes = [
     type: "collapse",
     name: "Users",
     key: "users",
-    icon: <Icon fontSize="small">table_view</Icon>,
+    icon: <Icon fontSize="small">person</Icon>,
     route: "/users",
     component: <Users />,
   },

@@ -13,7 +13,7 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
@@ -35,9 +35,20 @@ import DataTable from "examples/Tables/DataTable";
 // Data
 import authorsTableData from "layouts/tables/data/authorsTableData";
 
+import { getRequest } from "../../api";
+
 function LotTables() {
   const { columns, rows } = authorsTableData();
-  const menuItems = ["Parking Lot A", "Parking Lot B", "Parking Lot C", "Parking Lot D"];
+
+  const [menuItems, setMenuItems] = useState([]);
+  const getLots = async () => {
+    const rlt = await getRequest("/lot/all");
+    setMenuItems(rlt.map((each) => each[0]));
+  };
+
+  useEffect(() => {
+    getLots();
+  });
 
   const [menu, setMenu] = useState(null);
   const [title, setTitle] = useState(menuItems[0]);
@@ -47,9 +58,15 @@ function LotTables() {
   const closeMenu = (index) => {
     setMenu(null);
     if (index !== null) {
-      setTitle(menuItems[index]);
+      setTitle(index);
     }
   };
+
+  const menuItem = menuItems.map((id) => (
+    <MenuItem onClick={() => closeMenu(id)} key={id}>
+      Parking Lot {id}
+    </MenuItem>
+  ));
 
   const renderMenu = (
     <Menu
@@ -66,16 +83,12 @@ function LotTables() {
       open={Boolean(menu)}
       onClose={closeMenu}
     >
-      <MenuItem onClick={() => closeMenu(0)}>{menuItems[0]}</MenuItem>
-      <MenuItem onClick={() => closeMenu(1)}>{menuItems[1]}</MenuItem>
-      <MenuItem onClick={() => closeMenu(2)}>{menuItems[2]}</MenuItem>
-      <MenuItem onClick={() => closeMenu(3)}>{menuItems[3]}</MenuItem>
+      {menuItem}
     </Menu>
   );
 
   return (
     <DashboardLayout>
-      {/* <DashboardNavbar /> */}
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
           <Grid item xs={12}>
@@ -95,7 +108,7 @@ function LotTables() {
               >
                 <MDBox>
                   <MDTypography variant="h6" color="white">
-                    {title}
+                    Parking Lot {title}
                   </MDTypography>
                 </MDBox>
                 <MDBox color="text" px={2}>
