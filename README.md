@@ -7,6 +7,15 @@ This is the repo for the Smart Parking System.
 This system is built upon the Material Dashboard 2 React from [Creative Tim](https://www.creative-tim.com/product/material-dashboard-react?ref=readme-mdr).
 
 
+## Project Details
+1. DDL: 11.27.2022
+2. Add comment with name before every code block that you wrote
+3. Work distribution
+-  Eric: function 1-7
+- Gloria: SQL files; function 8,9,12,13
+- Toby: function 10, 11
+
+
 **Documentation built by Creative Tim**
 
 Each element is well presented in very complex documentation.
