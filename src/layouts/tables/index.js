@@ -41,15 +41,6 @@ function LotTables() {
   const { columns, rows } = authorsTableData();
 
   const [menuItems, setMenuItems] = useState([]);
-  const getLots = async () => {
-    const rlt = await getRequest("/lot/all");
-    setMenuItems(rlt.map((each) => each[0]));
-  };
-
-  useEffect(() => {
-    getLots();
-  });
-
   const [menu, setMenu] = useState(null);
   const [title, setTitle] = useState(menuItems[0]);
 
@@ -57,10 +48,16 @@ function LotTables() {
 
   const closeMenu = (index) => {
     setMenu(null);
-    if (index !== null) {
-      setTitle(index);
-    }
+    setTitle(index);
   };
+
+  useEffect(() => {
+    getRequest("/lot/all").then((resp) => {
+      if (resp) {
+        setMenuItems(resp.map((each) => each[0]));
+      }
+    });
+  }, []);
 
   const menuItem = menuItems.map((id) => (
     <MenuItem onClick={() => closeMenu(id)} key={id}>
@@ -81,7 +78,7 @@ function LotTables() {
         horizontal: "right",
       }}
       open={Boolean(menu)}
-      onClose={closeMenu}
+      onClose={() => setMenu(null)}
     >
       {menuItem}
     </Menu>
