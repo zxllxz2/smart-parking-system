@@ -21,15 +21,49 @@ import MDTypography from "components/MDTypography";
 // import MDBadge from "components/MDBadge";
 import MDButton from "components/MDButton";
 
-export default function data() {
-  // const Job = ({ title }) => (
-  //   <MDBox lineHeight={1} textAlign="left">
-  //     <MDTypography display="block" variant="caption" color="text" fontWeight="medium">
-  //       {title}
-  //     </MDTypography>
-  //     {/* <MDTypography variant="caption">{description}</MDTypography> */}
-  //   </MDBox>
-  // );
+// Eric; populate and return each parking spot entry
+function populateEntry(spaceId, spaceType, availability) {
+  return {
+    spaceId: (
+      <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
+        {spaceId}
+      </MDTypography>
+    ),
+    spaceType: (
+      <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
+        {spaceType}
+      </MDTypography>
+    ),
+    avail: (
+      <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
+        {availability === 0 ? "Available" : "Unavailable"}
+      </MDTypography>
+    ),
+    option:
+      availability === 0 ? (
+        <MDButton size="small" variant="outlined" color="success">
+          Park
+        </MDButton>
+      ) : (
+        <MDButton size="small" variant="outlined" color="error">
+          Check Out
+        </MDButton>
+      ),
+  };
+}
+
+// Eric; returns a new list for rows given new backend response
+const getNewList = (resp) => {
+  const result = [];
+  resp.forEach((ele) => {
+    result.push(populateEntry(ele[0], ele[1], ele[2]));
+  });
+
+  return result;
+};
+
+// Eric: method to be exported for index.js
+export default function data(resp) {
   return {
     columns: [
       { Header: "Space ID", accessor: "spaceId", align: "left" },
@@ -38,51 +72,6 @@ export default function data() {
       { Header: "Option", accessor: "option", align: "center" },
     ],
 
-    rows: [
-      {
-        spaceId: (
-          <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
-            1036
-          </MDTypography>
-        ),
-        spaceType: (
-          <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
-            Truck
-          </MDTypography>
-        ),
-        avail: (
-          <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
-            Available
-          </MDTypography>
-        ),
-        option: (
-          <MDButton size="small" variant="outlined" color="success">
-            Park
-          </MDButton>
-        ),
-      },
-      {
-        spaceId: (
-          <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
-            2026
-          </MDTypography>
-        ),
-        spaceType: (
-          <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
-            Standard
-          </MDTypography>
-        ),
-        avail: (
-          <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
-            Unavailable
-          </MDTypography>
-        ),
-        option: (
-          <MDButton size="small" variant="outlined" color="error">
-            Check Out
-          </MDButton>
-        ),
-      },
-    ],
+    rows: getNewList(resp),
   };
 }

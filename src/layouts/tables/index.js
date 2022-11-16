@@ -38,11 +38,20 @@ import authorsTableData from "layouts/tables/data/authorsTableData";
 import { getRequest } from "../../api";
 
 function LotTables() {
-  const { columns, rows } = authorsTableData();
-
-  const [menuItems, setMenuItems] = useState([]);
+  const [menuItems, setMenuItems] = useState([]); // Eric; items in menu
   const [menu, setMenu] = useState(null);
-  const [title, setTitle] = useState(menuItems[0]);
+  const [title, setTitle] = useState(menuItems[0]); // Eric; title
+  const [selected, setSelected] = useState(false); // Eric; whether user has selected a parking lot
+  const [numAvailable, setNumAvailable] = useState(0); // Eric; number of parking spaces available in the selected parking lot
+  const [table, setTable] = useState({
+    columns: [
+      { Header: "Space ID", accessor: "spaceId", align: "left" },
+      { Header: "Space Type", accessor: "spaceType", align: "center" },
+      { Header: "Availability", accessor: "avail", align: "center" },
+      { Header: "Option", accessor: "option", align: "center" },
+    ],
+    rows: [],
+  }); // Eric; when first entering the interface, display nothing
 
   const openMenu = ({ currentTarget }) => setMenu(currentTarget);
 
@@ -52,15 +61,31 @@ function LotTables() {
   };
 
   useEffect(() => {
-    getRequest("/lot/all").then((resp) => {
+    getRequest("/lot/all/").then((resp) => {
       if (resp) {
         setMenuItems(resp.map((each) => each[0]));
       }
     });
   }, []);
 
+  const menuItemsOnClick = (id) => {
+    setSelected(true); // Eric; user has selected a parking lot
+    getRequest(`/lot/listSpace/?LID=${id}`).then((resp) => {
+      if (resp) {
+        setTable(authorsTableData(resp));
+      }
+      // Eric; only make the next backend call when the previous is done
+      getRequest(`/lot/computeIdle/?LID=${id}`).then((response) => {
+        if (response) {
+          setNumAvailable(response[0]);
+        }
+      });
+    });
+    closeMenu(id);
+  };
+
   const menuItem = menuItems.map((id) => (
-    <MenuItem onClick={() => closeMenu(id)} key={id}>
+    <MenuItem onClick={() => menuItemsOnClick(id)} key={id}>
       Parking Lot {id}
     </MenuItem>
   ));
@@ -108,6 +133,11 @@ function LotTables() {
                     Parking Lot {title}
                   </MDTypography>
                 </MDBox>
+                {selected && (
+                  <MDTypography variant="h6" color="white">
+                    {numAvailable} Available Spots
+                  </MDTypography>
+                )}
                 <MDBox color="text" px={2}>
                   <Icon
                     sx={{ cursor: "pointer", fontWeight: "bold" }}
@@ -121,7 +151,7 @@ function LotTables() {
               </MDBox>
               <MDBox pt={3}>
                 <DataTable
-                  table={{ columns, rows }}
+                  table={table}
                   isSorted={false}
                   entriesPerPage={false}
                   showTotalEntries={false}

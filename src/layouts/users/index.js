@@ -63,7 +63,7 @@ function Users() {
                 <MDBox color="text" px={1} py={2}>
                   <MDBox pr={1} style={{ margin: `0 0 0 10px` }}>
                     <Icon style={{ margin: `13px 5px 0 -12px` }}>search</Icon>
-                    <MDInput label="Search here" style={{ "border-color": `transparent` }} />
+                    <MDInput label="Search here" />
                   </MDBox>
                 </MDBox>
               </MDBox>
