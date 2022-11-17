@@ -3,7 +3,7 @@ CREATE TABLE Owner (
     Lname varchar(50) NOT NULL,
     Minit char(1),
     Fname varchar(50) NOT NULL,
-    Date_of_birth date NOT NULL
+    Date_of_birth varchar(10) NOT NULL
 );
 
 CREATE TABLE Owner_Phone (
@@ -24,10 +24,8 @@ CREATE TABLE Payment (
     Drivers_license_num varchar(20),
     LID varchar(3),
     Amount integer NOT NULL,
-    Check_in_date date,
-    Check_in_time time,
-    Check_out_date date,
-    Check_out_time time,
+    Check_in_date datetime,
+    Check_out_date datetime,
 
     primary key (Drivers_license_num, LID),
     foreign key (Drivers_license_num) references Owner (Drivers_license_num),
@@ -49,16 +47,16 @@ CREATE TABLE Parking_Space (
 
 CREATE TABLE Vehicle (
     Plate varchar(10) primary key,
-    Type varchar(10) check(Type='Compact' or Type='Noncompact'),
+    Type varchar(10) check(Type='Standard' or Type='Truck'),
+    Standard_type varchar(10) check(Standard_type='Compact' or Standard_type='Noncompact'),
     Height integer
 );
 
 CREATE TABLE Vehicle_Parking (
     LID varchar(3),
-    Plate varchar(10),
     Space_no integer,
-    Check_in_date date,
-    Check_in_time time,
+	Plate varchar(10),
+    Check_in_date datetime,
 
     primary key (LID, Plate, Space_no),
     foreign key (LID) references Parking_Lot (LID),
@@ -84,30 +82,31 @@ VALUES
 
 INSERT INTO Owner (Drivers_license_num, Lname, Minit, Fname, Date_of_birth)
 VALUES
-    ('123456789', 'Parker' , 'A', 'Peter', '1990-02-23'),
-    ('987654321', 'Susan' , 'B', 'Alter', '1999-03-14'),
-    ('111111111', 'Lily' , 'C', 'Goodman', '1956-12-23'),
-    ('222222222', 'James' , 'D', 'Wilson', '2001-09-13'),
-    ('555555555', 'Peter' , 'E', 'Lee', '1981-10-23'),
-    ('333333333', 'Peter' , 'A', 'Lee', '1990-02-23'),
-    ('A12345678', 'John' , 'B', 'Doe', '1999-03-14'),
-    ('999999999', 'Amber' , 'C', 'King', '1956-12-23');
+    ('123456789', 'Peter' , 'A', 'Parker', '1990-02-23'),
+    ('987654321', 'Alter' , 'B', 'Susan', '1999-03-14'),
+    ('111111111', 'Goodman' , 'C', 'Lily', '1956-12-23'),
+    ('222222222', 'Wilson' , 'D', 'James', '2001-09-13'),
+    ('555555555', 'Lee' , 'E', 'Peter', '1981-10-23'),
+    ('333333333', 'Lee' , 'A', 'Peter', '1990-02-23'),
+    ('A12345678', 'Doe' , 'B', 'John', '1999-03-14'),
+    ('999999999', 'King' , 'C', 'Amber', '1956-12-23');
 
 INSERT INTO Owner_Phone
 VALUES
-    ('123456789', 917416476);
+    ('123456789', 917416476),
+	('123456789', 917416488);
 
 
 INSERT INTO Vehicle
 VALUES
-    ('ABCDEF', 'Compact', NULL),
-    ('FEDCBA', 'Noncompact', NULL),
-    ('AAAAAA', 'Compact', NULL),
-    ('BBBBBB', 'Noncompact', NULL),
-    ('CCCCCC', 'Noncompact', NULL),
-    ('DDDDDD', NULL, NULL),
-    ('FFFFFF', 'Compact', NULL),
-    ('GGGGGG', 'Compact', NULL);
+    ('ABCDEF', 'Standard', 'Compact', NULL),
+    ('FEDCBA', 'Standard', 'Noncompact', NULL),
+    ('AAAAAA', 'Standard', 'Compact', NULL),
+    ('BBBBBB', 'Standard', 'Noncompact', NULL),
+    ('CCCCCC', 'Standard', 'Noncompact', NULL),
+    ('DDDDDD', 'Truck', NULL, NULL),
+    ('FFFFFF', 'Standard', 'Compact', NULL),
+    ('GGGGGG', 'Standard', 'Compact', NULL);
 
 INSERT INTO Vehicle_Owning
 VALUES
@@ -122,7 +121,7 @@ VALUES
 
 INSERT INTO Parking_Space
 VALUES
-    ('73', 0001, 'Standard', false, 0.5, NULL),
+    ('73', 0001, 'Standard', true, 0.5, NULL),
     ('73', 0002, 'Standard', false, 0.5, NULL),
     ('73', 0003, 'Standard', false, 0.5, NULL),
     ('73', 0004, 'Standard', false, 0.5, NULL),
@@ -152,8 +151,21 @@ VALUES
     ('77', 0001, 'Truck', false, 1, 4),
     ('77', 0002, 'Truck', false, 1, 4);
 
+INSERT INTO Vehicle_Parking
+VALUES
+	('73',  0001, 'ABCDEF', '2022-11-16 19:32:04');
 
+SELECT Space_no, Type, Is_occupied FROM Parking_Space WHERE LID=25;
 
-
-
+SELECT Lname, Minit, Fname, Phone_num, v.Plate, Type, LID, Space_no, Check_in_date
+FROM Owner o 
+LEFT JOIN Owner_Phone p 
+ON o.Drivers_license_num  = p.Drivers_license_num
+LEFT JOIN Vehicle_owning vo
+ON o.Drivers_license_num=vo.Drivers_license_num
+LEFT JOIN Vehicle v
+ON vo.Plate=v.Plate
+LEFT JOIN Vehicle_Parking vp
+ON vo.Plate=vp.Plate
+WHERE o.Drivers_license_num='123456789'
     

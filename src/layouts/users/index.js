@@ -12,6 +12,7 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
+import { useState } from "react";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
@@ -32,8 +33,31 @@ import DataTable from "examples/Tables/DataTable";
 // Data
 import usersTableData from "layouts/users/data/usersTableData";
 
+import { getRequest } from "../../api";
+
 function Users() {
-  const { columns, rows } = usersTableData();
+  const [table, setTable] = useState({
+    columns: [
+      { Header: "Name", accessor: "name", align: "left" },
+      { Header: "Date of Birth", accessor: "dob", align: "center" },
+      { Header: "Phone Number", accessor: "phone", align: "center" },
+      { Header: "Vehicle Plate Number", accessor: "plate", align: "center" },
+      { Header: "Vehicle Type", accessor: "type", align: "center" },
+      { Header: "Parking Lot", accessor: "lot", align: "center" },
+      { Header: "Parking Space", accessor: "space", align: "center" },
+      { Header: "Check-In Time", accessor: "time", align: "center" },
+    ],
+    rows: [],
+  }); // Eric; when first entering the interface, display nothing
+
+  // Eric; when user searches through pressing Enter
+  function handleEnter(input) {
+    getRequest(`/user/listOwner/?ID=${input}`).then((response) => {
+      if (response) {
+        setTable(usersTableData(response));
+      }
+    });
+  }
 
   return (
     <DashboardLayout>
@@ -63,13 +87,21 @@ function Users() {
                 <MDBox color="text" px={1} py={2}>
                   <MDBox pr={1} style={{ margin: `0 0 0 10px` }}>
                     <Icon style={{ margin: `13px 5px 0 -12px` }}>search</Icon>
-                    <MDInput label="Search here" />
+                    <MDInput
+                      label="Search here"
+                      onKeyPress={(e) => {
+                        if (e.code === "Enter") {
+                          handleEnter(e.target.value);
+                          e.target.value = "";
+                        }
+                      }}
+                    />
                   </MDBox>
                 </MDBox>
               </MDBox>
               <MDBox pt={3}>
                 <DataTable
-                  table={{ columns, rows }}
+                  table={table}
                   isSorted={false}
                   entriesPerPage={false}
                   showTotalEntries={false}
