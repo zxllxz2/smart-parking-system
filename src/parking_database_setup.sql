@@ -148,7 +148,7 @@ VALUES
     ('77', 0003, 'Standard', false, 2, NULL),
     ('77', 0004, 'Standard', false, 2, NULL),
     ('77', 0005, 'Standard', false, 2, NULL),
-    ('77', 0006, 'Standard', false, 2, NULL);
+    ('77', 0006, 'Standard', false, 2, NULL),
     ('77', 0001, 'Truck', false, 1, 4),
     ('77', 0002, 'Truck', false, 1, 4);
 

@@ -7,7 +7,7 @@ app = Flask(__name__)
 CORS(app)
 
 # database connection
-cnx = connect(user='root', password='', host='localhost', database='smart_parking_db')
+cnx = connect(user='root', password='root', host='localhost', database='smart_parking_db')
 cursor = cnx.cursor()
 
 
