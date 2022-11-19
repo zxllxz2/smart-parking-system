@@ -21,10 +21,20 @@ import Card from "@mui/material/Card";
 import Icon from "@mui/material/Icon";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import InputAdornment from "@mui/material/InputAdornment";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
+import MDButton from "components/MDButton";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -35,29 +45,69 @@ import DataTable from "examples/Tables/DataTable";
 // Data
 import authorsTableData from "layouts/tables/data/authorsTableData";
 
-import { getRequest } from "../../api";
+import { getRequest, postRequest } from "../../api";
 
 function LotTables() {
+  // State declaration
   const [menuItems, setMenuItems] = useState([]); // Eric; items in menu
   const [menu, setMenu] = useState(null);
-  const [title, setTitle] = useState(menuItems[0]); // Eric; title
+  const [title, setTitle] = useState(""); // Eric; title
   const [selected, setSelected] = useState(false); // Eric; whether user has selected a parking lot
   const [numAvailable, setNumAvailable] = useState(0); // Eric; number of parking spaces available in the selected parking lot
-  const [table, setTable] = useState({
-    columns: [
-      { Header: "Space ID", accessor: "spaceId", align: "left" },
-      { Header: "Space Type", accessor: "spaceType", align: "center" },
-      { Header: "Availability", accessor: "avail", align: "center" },
-      { Header: "Option", accessor: "option", align: "center" },
-    ],
-    rows: [],
-  }); // Eric; when first entering the interface, display nothing
+  // Eric; when first entering the interface, display nothing
+  const tableHeaders = [
+    { Header: "Space ID", accessor: "spaceId", align: "left" },
+    { Header: "Space Type", accessor: "spaceType", align: "center" },
+    { Header: "Availability", accessor: "avail", align: "center" },
+    { Header: "Option", accessor: "option", align: "center" },
+  ];
+  const [table, setTable] = useState([]);
+  const [dialogOpen, setDialogOpen] = useState(0); // Toby; set dialog
+  const [alertx, setAlert] = useState(0); // Toby; set alert
+  const [notif, setNotif] = useState(false); // Toby; set notification
+  const [msgType, setMsgType] = useState("success"); // Toby; set notification type
+  // Toby; dialog input for user
+  const [last, setLast] = useState("");
+  const [first, setFirst] = useState("");
+  const [mid, setMid] = useState("");
+  const [dob, setDob] = useState("");
+  const [license, setLicense] = useState("");
+  const [phone1, setPhone1] = useState("");
+  const [phone2, setPhone2] = useState("");
+  // Toby; dialog input for vehicle
+  const [plate, setPlate] = useState("");
+  const [vType, setVType] = useState("");
+  const [height, setHeight] = useState(0);
+  // Toby; selected space (space, curType)
+  const [curSpace, setCurSpace] = useState([]);
+
+  // ===================================================================
+  // Function declaration
+
+  // Toby; vehicle type choices
+  const vehicleTypes = ["Truck", "Compact", "Noncompact"];
+
+  // Toby; open and close dialog
+  const openDialog = (event) => {
+    event.preventDefault();
+    const row = event.target.parentElement.parentElement.parentElement;
+    const space = row.children[0].getElementsByTagName("a")[0].textContent;
+    const curType = row.children[1].getElementsByTagName("a")[0].textContent;
+    setCurSpace([space, curType]);
+    setDialogOpen(1);
+  };
+  const closeDialog = () => setDialogOpen(0);
+
+  // Toby; manipulate alert and dialog
+  const opAlertDialog = (modeAlert, modeDialog) => {
+    setAlert(modeAlert);
+    setDialogOpen(modeDialog);
+  };
 
   const openMenu = ({ currentTarget }) => setMenu(currentTarget);
-
   const closeMenu = (index) => {
-    setMenu(null);
     setTitle(index);
+    setMenu(null);
   };
 
   useEffect(() => {
@@ -72,7 +122,7 @@ function LotTables() {
     setSelected(true); // Eric; user has selected a parking lot
     getRequest(`/lot/listSpace/?LID=${id}`).then((resp) => {
       if (resp) {
-        setTable(authorsTableData(resp));
+        setTable(authorsTableData(resp, openDialog));
       }
       // Eric; only make the next backend call when the previous is done
       getRequest(`/lot/computeIdle/?LID=${id}`).then((response) => {
@@ -84,12 +134,118 @@ function LotTables() {
     closeMenu(id);
   };
 
+  // Toby; submit user data
+  const submitForm = (event) => {
+    event.preventDefault();
+    getRequest(`/user/check/?li=${license}&dob=${dob}`).then((resp) => {
+      if (resp) {
+        if (resp.length === 0) {
+          setAlert(1);
+        } else {
+          setLast(resp[0][1]);
+          setMid(resp[0][2]);
+          setFirst(resp[0][3]);
+          setAlert(2);
+        }
+      }
+    });
+  };
+
+  // Toby; submit vehicle data
+  const submitFormVehicle = (event) => {
+    event.preventDefault();
+    if (vType !== curSpace[1] && vType === "Truck") {
+      alert("\nUnmatched vehicle type! \n\nPlease choose the compatible parking space!");
+      return;
+    }
+    const oneVehicle = {
+      plate_number: plate,
+      vehicle_type: vType,
+      vehicle_height: height,
+    };
+    postRequest("/vehicle/", oneVehicle).then((resp) => {
+      if (resp) {
+        if (resp.length === 0) {
+          setAlert(3);
+        } else {
+          setAlert(4);
+        }
+      }
+    });
+  };
+
+  // Toby; insert a new user
+  const registerNewUser = (event) => {
+    event.preventDefault();
+    const newUser = {
+      last_name: last,
+      first_name: first,
+      mid_init: mid,
+      date_of_birth: dob,
+      license_number: license,
+      phone_1: phone1,
+      phone_2: phone2,
+    };
+    postRequest("/user/", newUser).then((resp) => {
+      if (resp) {
+        setMsgType("success");
+        setNotif(true);
+        opAlertDialog(0, 2);
+      } else {
+        setMsgType("error");
+        setNotif(true);
+        setAlert(0);
+      }
+    });
+  };
+
+  // Toby; parking
+  const parking = (event) => {
+    event.preventDefault();
+    const payload = {
+      plate_number: plate,
+      LID: title,
+      space_number: curSpace[0],
+    };
+    postRequest("/vehicle/park/", payload).then((resp) => {
+      if (resp) {
+        setMsgType("success");
+        setNotif(true);
+        menuItemsOnClick(title);
+        opAlertDialog(0, 0);
+      } else {
+        setMsgType("error");
+        setNotif(true);
+        setAlert(0);
+      }
+    });
+  };
+
+  // ==========================================================================
+  // HTML declaration
+
+  // Toby; set notification bar
+  const notification = (
+    <Snackbar open={notif} autoHideDuration={5000} onClose={() => setNotif(false)}>
+      <MuiAlert
+        onClose={() => setNotif(false)}
+        elevation={6}
+        variant="filled"
+        severity={msgType}
+        sx={{ width: "100%" }}
+      >
+        {msgType.toUpperCase()}!
+      </MuiAlert>
+    </Snackbar>
+  );
+
   const menuItem = menuItems.map((id) => (
     <MenuItem onClick={() => menuItemsOnClick(id)} key={id}>
       Parking Lot {id}
     </MenuItem>
   ));
 
+  // Toby; render Menu
   const renderMenu = (
     <Menu
       id="simple-menu"
@@ -107,6 +263,292 @@ function LotTables() {
     >
       {menuItem}
     </Menu>
+  );
+
+  // Toby; render user info
+  const renderUser = (
+    <div style={{ margin: "15px 0 0 15px" }}>
+      <p>
+        <b>Name:</b> {first} {mid.toUpperCase()} {last}
+      </p>
+      <p>
+        <b>Date of Birth:</b> {dob}
+      </p>
+      <p>
+        <b>License Number:</b> {license}
+      </p>
+      <p>
+        <b>Default Phone Number:</b> {phone1}
+      </p>
+      <p>
+        <b>Alternative Phone Number:</b> {phone2}
+      </p>
+    </div>
+  );
+
+  // Toby; render parking
+  const renderParking = (
+    <div style={{ margin: "15px 0 0 15px" }}>
+      <p>
+        <b>Parking Lot:</b> {title}
+      </p>
+      <p>
+        <b>Vehicle Plate Number:</b> {plate}
+      </p>
+      <p>
+        <b>Vehicle Type:</b> {vType}
+      </p>
+      <p>
+        <b>Height:</b> {height > 0 ? [height, "ft"].join(" ") : "NA"}
+      </p>
+    </div>
+  );
+
+  // Toby; render alert
+  const renderAlert = (
+    <div>
+      <Dialog
+        open={alertx === 1}
+        onClose={() => setAlert(0)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle id="alert-dialog-title"> Non-existent User! </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            No registered user with the same license number and/or date of birth. <br />
+            Do you want to register as a new user with following information?
+          </DialogContentText>
+          {renderUser}
+        </DialogContent>
+        <DialogActions>
+          <MDButton size="small" variant="outlined" color="success" onClick={registerNewUser}>
+            Yes
+          </MDButton>
+          <MDButton size="small" variant="outlined" color="error" onClick={() => setAlert(0)}>
+            Cancel
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={alertx === 2}
+        onClose={() => setAlert(0)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle id="alert-dialog-title2"> Welcome Back! </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description2">
+            Hello {first}. Please confirm if the following information is correct.
+          </DialogContentText>
+          {renderUser}
+        </DialogContent>
+        <DialogActions>
+          <MDButton
+            size="small"
+            variant="outlined"
+            color="success"
+            onClick={() => opAlertDialog(0, 2)}
+          >
+            Confirm
+          </MDButton>
+          <MDButton size="small" variant="outlined" color="error" onClick={() => setAlert(0)}>
+            Cancel
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={alertx === 3}
+        onClose={() => setAlert(0)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle id="alert-dialog-title3"> Parking Details </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description3">
+            Please confirm the parking information is correct.
+          </DialogContentText>
+          {renderParking}
+        </DialogContent>
+        <DialogActions>
+          <MDButton size="small" variant="outlined" color="success" onClick={parking}>
+            Park
+          </MDButton>
+          <MDButton size="small" variant="outlined" color="error" onClick={() => setAlert(0)}>
+            Cancel
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={alertx === 4}
+        onClose={() => setAlert(0)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle id="alert-dialog-title4"> Parking Fails </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description4">
+            The vehicle has already been parked. <br />
+            Please refer to the parking information below.
+          </DialogContentText>
+          {renderParking}
+        </DialogContent>
+        <DialogActions>
+          <MDButton size="small" variant="outlined" color="info" onClick={() => setAlert(0)}>
+            Okay
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
+
+  // Toby; render dialog
+  const renderDialog = (
+    <div>
+      <Dialog open={dialogOpen === 1} onClose={closeDialog} component="form" onSubmit={submitForm}>
+        <DialogTitle>User</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please enter the following information to confirm your identity.
+          </DialogContentText>
+          <MDBox
+            sx={{
+              "& .MuiTextField-root": { m: 1, width: "28ch" },
+            }}
+          >
+            <TextField
+              required
+              id="last"
+              label="Last Name"
+              onChange={(e) => setLast(e.target.value)}
+              error={last.length === 0}
+            />
+            <TextField
+              required
+              id="first"
+              label="First Name"
+              onChange={(e) => setFirst(e.target.value)}
+              error={first.length === 0}
+            />
+            <TextField id="mid" label="Mid Init." onChange={(e) => setMid(e.target.value)} />
+            <TextField
+              required
+              id="dob"
+              label="Date of brith"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              onChange={(e) => setDob(e.target.value)}
+              error={dob.length === 0}
+            />
+            <TextField
+              required
+              id="phone1"
+              label="Phone #"
+              onChange={(e) => setPhone1(e.target.value)}
+              error={phone1.length === 0}
+            />
+            <TextField
+              id="phone2"
+              label="Alternative Phone #"
+              onChange={(e) => setPhone2(e.target.value)}
+            />
+            <TextField
+              required
+              id="license"
+              label="Driving License #"
+              onChange={(e) => setLicense(e.target.value)}
+              error={license.length === 0}
+            />
+          </MDBox>
+        </DialogContent>
+        <DialogActions>
+          <MDButton size="small" variant="outlined" color="success" type="submit">
+            Confirm
+          </MDButton>
+          <MDButton size="small" variant="outlined" color="error" onClick={closeDialog}>
+            Cancel
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={dialogOpen === 2}
+        onClose={closeDialog}
+        component="form"
+        onSubmit={submitFormVehicle}
+      >
+        <DialogTitle>Vehicle</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please enter information of the vehicle that you will park here.
+          </DialogContentText>
+          <MDBox
+            sx={{
+              "& .MuiTextField-root": { m: 2, width: "30ch" },
+            }}
+          >
+            <TextField
+              required
+              id="plate"
+              label="Plate #"
+              variant="standard"
+              onChange={(e) => setPlate(e.target.value)}
+              error={plate.length === 0}
+            />
+            <TextField
+              required
+              select
+              id="type"
+              label="Vihecle Type"
+              variant="standard"
+              value={vType}
+              onChange={(e) => {
+                setVType(e.target.value);
+                if (e.target.value !== "Truck") {
+                  setHeight(0);
+                }
+              }}
+              helperText="Please select your vehicle type"
+              error={vType.length === 0}
+            >
+              {vehicleTypes.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              required={vType === "Truck"}
+              disabled={vType !== "Truck"}
+              id="height"
+              label="Height"
+              type="number"
+              variant="standard"
+              value={height}
+              InputProps={{ endAdornment: <InputAdornment position="end">ft</InputAdornment> }}
+              InputLabelProps={{ shrink: true }}
+              onChange={(e) => setHeight(e.target.value)}
+              error={vType === "Truck" && height <= 0}
+            />
+          </MDBox>
+        </DialogContent>
+        <DialogActions>
+          <MDButton size="small" variant="outlined" color="success" type="submit">
+            Confirm
+          </MDButton>
+          <MDButton size="small" variant="outlined" color="error" onClick={closeDialog}>
+            Cancel
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+    </div>
   );
 
   return (
@@ -151,7 +593,7 @@ function LotTables() {
               </MDBox>
               <MDBox pt={3}>
                 <DataTable
-                  table={table}
+                  table={{ columns: tableHeaders, rows: table }}
                   isSorted={false}
                   entriesPerPage={false}
                   showTotalEntries={false}
@@ -162,7 +604,10 @@ function LotTables() {
           </Grid>
         </Grid>
       </MDBox>
+      {renderDialog}
+      {renderAlert}
       <Footer />
+      {notification}
     </DashboardLayout>
   );
 }

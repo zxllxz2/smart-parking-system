@@ -22,7 +22,7 @@ import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 
 // Eric; populate and return each parking spot entry
-function populateEntry(spaceId, spaceType, availability) {
+function populateEntry(spaceId, spaceType, availability, handle) {
   return {
     spaceId: (
       <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
@@ -36,42 +36,32 @@ function populateEntry(spaceId, spaceType, availability) {
     ),
     avail: (
       <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
-        {availability === 0 ? "Available" : "Unavailable"}
+        {!availability ? "Available" : "Unavailable"}
       </MDTypography>
     ),
-    option:
-      availability === 0 ? (
-        <MDButton size="small" variant="outlined" color="success">
-          Park
-        </MDButton>
-      ) : (
-        <MDButton size="small" variant="outlined" color="error">
-          Check Out
-        </MDButton>
-      ),
+    option: !availability ? (
+      <MDButton size="small" variant="outlined" color="success" onClick={handle}>
+        Park
+      </MDButton>
+    ) : (
+      <MDButton size="small" variant="outlined" color="error" onClick={handle}>
+        Check Out
+      </MDButton>
+    ),
   };
 }
 
 // Eric; returns a new list for rows given new backend response
-const getNewList = (resp) => {
+const getNewList = (resp, open) => {
   const result = [];
   resp.forEach((ele) => {
-    result.push(populateEntry(ele[0], ele[1], ele[2]));
+    result.push(populateEntry(ele[0], ele[1], ele[2], open));
   });
 
   return result;
 };
 
 // Eric: method to be exported for index.js
-export default function data(resp) {
-  return {
-    columns: [
-      { Header: "Space ID", accessor: "spaceId", align: "left" },
-      { Header: "Space Type", accessor: "spaceType", align: "center" },
-      { Header: "Availability", accessor: "avail", align: "center" },
-      { Header: "Option", accessor: "option", align: "center" },
-    ],
-
-    rows: getNewList(resp),
-  };
+export default function data(resp, openDialog) {
+  return getNewList(resp, openDialog);
 }
