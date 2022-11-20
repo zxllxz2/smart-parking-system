@@ -38,13 +38,12 @@ import MDButton from "components/MDButton";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-// import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
 // Data
 import authorsTableData from "layouts/tables/data/authorsTableData";
-
+// Requests
 import { getRequest, postRequest } from "../../api";
 
 function LotTables() {
@@ -80,12 +79,16 @@ function LotTables() {
   const [height, setHeight] = useState(0);
   // Toby; selected space (space, curType)
   const [curSpace, setCurSpace] = useState([]);
+  // Toby; dialog for checkout
+  const [out, setOut] = useState(0);
+  const [outInfo, setOutInfo] = useState(null);
 
   // ===================================================================
   // Function declaration
 
   // Toby; vehicle type choices
   const vehicleTypes = ["Truck", "Compact", "Noncompact"];
+  let lotID = null;
 
   // Toby; open and close dialog
   const openDialog = (event) => {
@@ -104,12 +107,36 @@ function LotTables() {
     setDialogOpen(modeDialog);
   };
 
+  // Toby; open and close check-out dialog
+  const alertCheckOut = (event) => {
+    const row = event.target.parentElement.parentElement.parentElement;
+    const space = row.children[0].getElementsByTagName("a")[0].textContent;
+    const curType = row.children[1].getElementsByTagName("a")[0].textContent;
+    getRequest(`/vehicle/precheckout/?LID=${lotID}&spaceNo=${space}`).then((response) => {
+      if (response) {
+        const resp = response;
+        resp.type = curType;
+        resp.spaceNo = space;
+        resp.finalP = 0;
+        resp.lotId = lotID;
+        setOutInfo(resp);
+      }
+    });
+    if (window.confirm("Are you sure you want to check out here?")) {
+      setOut(1);
+    }
+  };
+  const closeCheckOut = () => {
+    setOut(0);
+  };
+
   const openMenu = ({ currentTarget }) => setMenu(currentTarget);
   const closeMenu = (index) => {
     setTitle(index);
     setMenu(null);
   };
 
+  // Toby; mount info about parking lot only once
   useEffect(() => {
     getRequest("/lot/all/").then((resp) => {
       if (resp) {
@@ -118,11 +145,20 @@ function LotTables() {
     });
   }, []);
 
+  // Toby; set payment window alive time
+  useEffect(() => {
+    if (out === 2) {
+      setTimeout(() => {
+        closeCheckOut();
+      }, 300000);
+    }
+  }, [out]);
+
   const menuItemsOnClick = (id) => {
     setSelected(true); // Eric; user has selected a parking lot
     getRequest(`/lot/listSpace/?LID=${id}`).then((resp) => {
       if (resp) {
-        setTable(authorsTableData(resp, openDialog));
+        setTable(authorsTableData(resp, openDialog, alertCheckOut));
       }
       // Eric; only make the next backend call when the previous is done
       getRequest(`/lot/computeIdle/?LID=${id}`).then((response) => {
@@ -131,6 +167,7 @@ function LotTables() {
         }
       });
     });
+    lotID = id;
     closeMenu(id);
   };
 
@@ -154,8 +191,8 @@ function LotTables() {
   // Toby; submit vehicle data
   const submitFormVehicle = (event) => {
     event.preventDefault();
-    if (vType !== curSpace[1] && vType === "Truck") {
-      alert("\nUnmatched vehicle type! \n\nPlease choose the compatible parking space!");
+    if (vType !== curSpace[1] && (vType === "Truck" || curSpace[1] === "Truck")) {
+      alert("\nUnmatched vehicle type! \nPlease choose the compatible parking space!");
       return;
     }
     const oneVehicle = {
@@ -221,8 +258,134 @@ function LotTables() {
     });
   };
 
+  // Toby; compute payment
+  const goPayment = () => {
+    getRequest(`/vehicle/precheckout/fee/?time=${outInfo.checkin}&price=${outInfo.price}`).then(
+      (resp) => {
+        if (resp !== null) {
+          const newOutInfo = outInfo;
+          newOutInfo.finalP = resp;
+          setOutInfo(newOutInfo);
+          setOut(2);
+        }
+      }
+    );
+  };
+
+  // Toby; finish the parking transaction
+  const settlePark = () => {
+    postRequest("/vehicle/checkout/", outInfo).then((resp) => {
+      if (resp) {
+        setMsgType("success");
+        setNotif(true);
+        menuItemsOnClick(title);
+        closeCheckOut();
+      } else {
+        setMsgType("error");
+        setNotif(true);
+      }
+    });
+  };
+
   // ==========================================================================
   // HTML declaration
+
+  // Toby; load checkout information
+  const renderCheckoutInfo =
+    outInfo === null ? null : (
+      <div style={{ margin: "15px 0 0 15px" }}>
+        <p>
+          <b>User License Number:</b> {outInfo.license}
+        </p>
+        <p>
+          <b>Parking Lot:</b> {title}
+        </p>
+        <p>
+          <b>Pakring Space:</b> {outInfo.spaceNo}
+        </p>
+        <p>
+          <b>Space Hourly Price:</b> ${outInfo.price}
+        </p>
+        <p>
+          <b>Vehicle Plate Number:</b> {outInfo.plate}
+        </p>
+        <p>
+          <b>Vehicle Type:</b> {outInfo.type}
+        </p>
+        <p>
+          <b>Check-in Time:</b> {outInfo.checkin}
+        </p>
+      </div>
+    );
+
+  // Toby; render check out ui
+  const renderCheckOut = (
+    <div>
+      <Dialog
+        open={out === 1}
+        onClose={closeCheckOut}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle> Parking Receipt </DialogTitle>
+        <DialogContent>
+          <DialogContentText> Please confirm the below information is correct. </DialogContentText>
+          {renderCheckoutInfo}
+        </DialogContent>
+        <DialogActions>
+          <MDButton size="small" variant="outlined" color="success" onClick={goPayment}>
+            Confirm
+          </MDButton>
+          <MDButton size="small" variant="outlined" color="error" onClick={closeCheckOut}>
+            Cancel
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={out === 2}
+        onClose={closeCheckOut}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle> Payment Information </DialogTitle>
+        <DialogContent>
+          <DialogContentText style={{ margin: "0 0 15px 20px" }}>
+            Your total payment is <b>${outInfo === null ? 0 : outInfo.finalP}</b>. <br />
+            Please enter your payment information. <br />
+            You will have 5 minutes to finish your payment. The window will close when time is up.
+          </DialogContentText>
+          <MDBox
+            sx={{
+              "& .MuiTextField-root": { m: 2, width: "30ch" },
+            }}
+          >
+            <TextField required id="x1" label="Card Number" />
+            <TextField required id="x2" label="Card Holder Name" />
+            <TextField required id="X3" label="CSV/CVV/CVC" />
+            <TextField
+              required
+              id="X4"
+              label="Expires"
+              type="month"
+              InputLabelProps={{ shrink: true }}
+            />
+          </MDBox>
+        </DialogContent>
+        <DialogActions>
+          <MDButton size="small" variant="outlined" color="success" onClick={settlePark}>
+            Pay
+          </MDButton>
+          <MDButton size="small" variant="outlined" color="error" onClick={closeCheckOut}>
+            Cancel
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
 
   // Toby; set notification bar
   const notification = (
@@ -606,6 +769,7 @@ function LotTables() {
       </MDBox>
       {renderDialog}
       {renderAlert}
+      {renderCheckOut}
       <Footer />
       {notification}
     </DashboardLayout>

@@ -27,7 +27,7 @@ CREATE TABLE Payment (
     Check_in_date datetime,
     Check_out_date datetime,
 
-    primary key (Drivers_license_num, LID),
+    primary key (Drivers_license_num, LID, Check_in_date),
     foreign key (Drivers_license_num) references Owner (Drivers_license_num),
     foreign key (LID) references Parking_Lot (LID)
 );
@@ -155,17 +155,3 @@ INSERT INTO Vehicle_Parking
 VALUES
 	('73',  0001, 'ABCDEF', '2022-11-16 19:32:04');
 
-SELECT Space_no, Type, Is_occupied FROM Parking_Space WHERE LID=25;
-
-SELECT Lname, Minit, Fname, Phone_num, v.Plate, Type, LID, Space_no, Check_in_date
-FROM Owner o 
-LEFT JOIN Owner_Phone p 
-ON o.Drivers_license_num  = p.Drivers_license_num
-LEFT JOIN Vehicle_owning vo
-ON o.Drivers_license_num=vo.Drivers_license_num
-LEFT JOIN Vehicle v
-ON vo.Plate=v.Plate
-LEFT JOIN Vehicle_Parking vp
-ON vo.Plate=vp.Plate
-WHERE o.Drivers_license_num='123456789'
-    

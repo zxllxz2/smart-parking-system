@@ -53,10 +53,30 @@ def park_vehicle():
     park_info = request.get_json()
     return resp(obj=park(park_info))
 
+@app.route('/vehicle/precheckout/', methods=['GET'])
+def pre_check_out_info():
+    id = str(request.args.get('LID'))
+    num = str(request.args.get('spaceNo'))
+    plate, check_in_time = check_parking_vehicle(id, num)
+    info = {
+        "plate": plate,
+        "checkin": str(check_in_time),
+        "license": get_owner(plate),
+        "price": get_price(id, num)
+    }
+    return resp(obj=info)
+
+@app.route('/vehicle/precheckout/fee/', methods=['GET'])
+def get_payment():
+    time = str(request.args.get('time'))
+    price = float(request.args.get('price'))
+    return resp(obj=settle_amount(time, price))
+
 @app.route('/vehicle/checkout/', methods=['GET', 'POST'])
 def check_out_vehicle():
     park_info = request.get_json()
     return resp(obj=check_out(park_info))
+
 
 ###### Eric's servlet section
 
@@ -72,14 +92,14 @@ def compute_idle_servlet():
 def list_owner_servlet():
     return resp(obj=list_owner(request.args.get('ID')))
 
+
 ###### Gloria's servlet section
-# 4~8, 12
+# 4, 5, 6, 7, 8, 12
 
 
 
 
 ###### backend queries
-
 
 # 0 get all parking lot ids
 def get_all_lots():
@@ -172,14 +192,14 @@ def park(park_info):
     try:
         cursor.execute(update_query)
         cursor.execute(insert_clause)
-    except:
+    except Exception as e:
         success = False
+        print(e)
         cnx.rollback()
     else:
         cnx.commit()
 
     return success
-
 
 # 10.1 get the hourly price of a parking space
 def get_price(LID, space_no):
@@ -187,19 +207,21 @@ def get_price(LID, space_no):
     cursor.execute(query)
     return cursor.fetchall()[0][0]
 
+# 10.2 compute the final price amount
+def settle_amount(check_in_time, price):
+    time_delta = datetime.now() - datetime.strptime(check_in_time, "%Y-%m-%d %H:%M:%S")
+    money = round(((time_delta.days * 24) + round(time_delta.seconds / 3600)) * price)
+    return max(10, money)
 
 # 10 check out the vehicle
 def check_out(park_info):
-    id = str(park_info.get('LID'))
-    num = str(park_info.get('space_number'))
-
-    plate, check_in_time = check_parking_vehicle(id, num)
-    owner = get_owner(plate)
-    price = get_price(id, num)
-
-    time_delta = datetime.strptime(check_in_time, "%Y-%m-%d %H:%M:%S") - datetime.now()
+    id = str(park_info.get('lotId'))
+    num = str(park_info.get('spaceNo'))
+    owner = "123456789" #park_info.get('license')
+    plate = park_info.get('plate')
+    check_in_time = park_info.get('checkin')
+    amount = park_info.get('finalP')
     check_out_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    amount = round(((time_delta.days * 24) + round(time_delta.seconds / 3600)) * price)
 
     insert_tuple_p = "', '".join([owner, id, check_in_time, check_out_time])
     insert_clause = """INSERT INTO Payment 
@@ -216,14 +238,14 @@ def check_out(park_info):
         cursor.execute(insert_clause)
         cursor.execute(update_clause)
         cursor.execute(delete_clause)
-    except:
+    except Exception as e:
         success = False
+        print(e)
         cnx.rollback()
     else:
         cnx.commit()
 
     return success
-
 
 # 11 given the drivers license id, provide all information about the owner
 def list_owner(ID):
@@ -245,9 +267,6 @@ def list_owner(ID):
 # 12 lists all payment information of the given owner
 def list_payments(license):
     return []
-
-
-
 
 
 

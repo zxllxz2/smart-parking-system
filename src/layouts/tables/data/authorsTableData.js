@@ -22,7 +22,7 @@ import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 
 // Eric; populate and return each parking spot entry
-function populateEntry(spaceId, spaceType, availability, handle) {
+function populateEntry(spaceId, spaceType, availability, park, leave) {
   return {
     spaceId: (
       <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
@@ -40,11 +40,11 @@ function populateEntry(spaceId, spaceType, availability, handle) {
       </MDTypography>
     ),
     option: !availability ? (
-      <MDButton size="small" variant="outlined" color="success" onClick={handle}>
+      <MDButton size="small" variant="outlined" color="success" onClick={park}>
         Park
       </MDButton>
     ) : (
-      <MDButton size="small" variant="outlined" color="error" onClick={handle}>
+      <MDButton size="small" variant="outlined" color="error" onClick={leave}>
         Check Out
       </MDButton>
     ),
@@ -52,16 +52,16 @@ function populateEntry(spaceId, spaceType, availability, handle) {
 }
 
 // Eric; returns a new list for rows given new backend response
-const getNewList = (resp, open) => {
+const getNewList = (resp, park, leave) => {
   const result = [];
   resp.forEach((ele) => {
-    result.push(populateEntry(ele[0], ele[1], ele[2], open));
+    result.push(populateEntry(ele[0], ele[1], ele[2], park, leave));
   });
 
   return result;
 };
 
 // Eric: method to be exported for index.js
-export default function data(resp, openDialog) {
-  return getNewList(resp, openDialog);
+export default function data(resp, openDialog, openCheckOut) {
+  return getNewList(resp, openDialog, openCheckOut);
 }
