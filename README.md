@@ -9,7 +9,15 @@ This system is built upon the Material Dashboard 2 React from [Creative Tim](htt
 
 ## Project Details
 
-**Documentation built by Creative Tim**
+### **Introduction**
+
+This application allows users to see the available spaces in all parking lots, park and check out their vehicles via a simple click, and pay for each parking session automatically. In this app, a database system will store the user and vehicle information, as well as the up-to-date status of all parking lots and parking spaces. Moreover, it will also save the user’s parking and payment history for administrative and tracing purposes.
+
+### **User Manual**
+
+The complete report for this project, including the user manual, is [here](./Project_Report.pdf).
+
+### **Component Documentation by Creative Tim**
 
 Each element is well presented in very complex documentation.
 
