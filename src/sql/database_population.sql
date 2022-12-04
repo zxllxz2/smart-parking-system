@@ -44,16 +44,16 @@ VALUES
 
 INSERT INTO Parking_Space
 VALUES
-    ('73', 0001, 'Standard', true, 0.5, NULL),
+    ('73', 0001, 'Standard', false, 0.5, NULL),
     ('73', 0002, 'Standard', false, 0.5, NULL),
     ('73', 0003, 'Standard', false, 0.5, NULL),
-    ('73', 0004, 'Standard', false, 0.5, NULL),
+    ('73', 0004, 'Standard', true, 0.5, NULL),
     ('73', 0005, 'Truck', false, 1.2, 3),
     ('73', 0006, 'Truck', false, 1.2, 3),
     ('73', 0007, 'Truck', false, 1.2, 3),
     ('73', 0008, 'Truck', false, 1.2, 3),
 
-    ('25', 0001, 'Standard', false, 0.7, NULL),
+    ('25', 0001, 'Standard', true, 0.7, NULL),
     ('25', 0002, 'Standard', false, 0.7, NULL),
     ('25', 0003, 'Standard', false, 0.7, NULL),
     ('25', 0004, 'Standard', false, 0.7, NULL),
@@ -68,11 +68,11 @@ VALUES
 
 
     ('77', 0003, 'Standard', false, 2, NULL),
-    ('77', 0004, 'Standard', false, 2, NULL),
+    ('77', 0004, 'Standard', true, 2, NULL),
     ('77', 0005, 'Standard', false, 2, NULL),
     ('77', 0006, 'Standard', false, 2, NULL),
     ('77', 0001, 'Truck', false, 1, 4),
-    ('77', 0002, 'Truck', false, 1, 4);
+    ('77', 0002, 'Truck', true, 1, 4);
 
 INSERT INTO Vehicle_Parking
 VALUES
@@ -83,5 +83,5 @@ VALUES
 
 INSERT INTO Payment (Drivers_license_num, LID, Amount, Check_in_date, Check_out_date)
 VALUES
-    ('123456789', '73', 70, '2022-11-16 19:32:04', '2022-11-19 17:51:26')
+    ('123456789', '73', 70, '2022-11-16 19:32:04', '2022-11-19 17:51:26'),
     ('123456789', '77', 10, '2022-11-19 18:16:38', '2022-11-19 18:16:59');
