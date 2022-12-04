@@ -8,7 +8,7 @@ CREATE TABLE Owner (
 
 CREATE TABLE Owner_Phone (
     Drivers_license_num varchar(20),
-    Phone_num integer,
+    Phone_num bigint,
 
     primary key (Drivers_license_num, Phone_num),
     foreign key (Drivers_license_num) references Owner (Drivers_license_num)

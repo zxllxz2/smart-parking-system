@@ -27,7 +27,7 @@ VALUES
     ('AAAAAA', 'Standard', 'Compact', NULL),
     ('BBBBBB', 'Standard', 'Noncompact', NULL),
     ('CCCCCC', 'Standard', 'Noncompact', NULL),
-    ('DDDDDD', 'Truck', NULL, NULL),
+    ('DDDDDD', 'Truck', NULL, 2),
     ('FFFFFF', 'Standard', 'Compact', NULL),
     ('GGGGGG', 'Standard', 'Compact', NULL);
 

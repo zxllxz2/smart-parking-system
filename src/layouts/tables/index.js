@@ -82,6 +82,8 @@ function LotTables() {
   // Toby; dialog for checkout
   const [out, setOut] = useState(0);
   const [outInfo, setOutInfo] = useState(null);
+  // Toby; display parked car
+  const [parked, setParked] = useState({ lot: "", space: "", plate: "", time: "" });
 
   // ===================================================================
   // Function declaration
@@ -199,12 +201,19 @@ function LotTables() {
       plate_number: plate,
       vehicle_type: vType,
       vehicle_height: height,
+      license_num: license,
     };
     postRequest("/vehicle/", oneVehicle).then((resp) => {
       if (resp) {
         if (resp.length === 0) {
           setAlert(3);
         } else {
+          setParked({
+            lot: resp[0],
+            space: resp[1],
+            plate: resp[2],
+            time: resp[3],
+          });
           setAlert(4);
         }
       }
@@ -432,7 +441,7 @@ function LotTables() {
   const renderUser = (
     <div style={{ margin: "15px 0 0 15px" }}>
       <p>
-        <b>Name:</b> {first} {mid.toUpperCase()} {last}
+        <b>Name:</b> {first} {mid === null ? "" : mid.toUpperCase()} {last}
       </p>
       <p>
         <b>Date of Birth:</b> {dob}
@@ -463,6 +472,24 @@ function LotTables() {
       </p>
       <p>
         <b>Height:</b> {height > 0 ? [height, "ft"].join(" ") : "NA"}
+      </p>
+    </div>
+  );
+
+  // Toby; render parked vehicle info
+  const renderParked = (
+    <div style={{ margin: "15px 0 0 15px" }}>
+      <p>
+        <b>Parking Lot:</b> {parked.lot}
+      </p>
+      <p>
+        <b>Space Number:</b> {parked.space}
+      </p>
+      <p>
+        <b>Vehicle Plate Number:</b> {parked.plate}
+      </p>
+      <p>
+        <b>Checkin Datetime:</b> {parked.time}
       </p>
     </div>
   );
@@ -562,7 +589,7 @@ function LotTables() {
             The vehicle has already been parked. <br />
             Please refer to the parking information below.
           </DialogContentText>
-          {renderParking}
+          {renderParked}
         </DialogContent>
         <DialogActions>
           <MDButton size="small" variant="outlined" color="info" onClick={() => setAlert(0)}>
