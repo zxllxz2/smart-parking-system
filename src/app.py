@@ -95,6 +95,30 @@ def list_owner_servlet():
 
 ###### Gloria's servlet section
 # 4, 5, 6, 7, 8, 12
+@app.route('/vehicle/check/', methods=['GET'])
+def check_vehicle_servlet():
+    return resp(obj=check_vehicle(request.args.get('plate_num')))
+
+@app.route('/vehicle/checkParking/', methods=['GET'])
+def check_parking_servlet():
+    return resp(obj=check_parking(request.args.get('plate_num')))
+
+@app.route('/user/register/', methods=['GET, POST'])
+def register_owner_servlet():
+    user = request.get_json()
+    return resp(obj=register_owner(user))
+
+@app.route('/vehicle/register/', methods=['GET', 'POST'])
+def register_vehicle_servlet():
+    vehicle_info = request.get_json()
+    return resp(obj=register_vehicle(vehicle_info))
+
+@app.route('/user/getOwner/', methods=['GET'])
+def get_owner_servlet():
+    return resp(obj=list_owner(request.args.get('plate_num')))
+@app.route('/user/listPayments/', methods=['GET'])
+def list_payment_servlet():
+    return resp(obj=list_owner(request.args.get('license')))
 
 
 
@@ -135,11 +159,19 @@ def check_owner(license_num, dob=None):
 
 # 4 check if a specific vehicle exists in the vehicle table
 def check_vehicle(plate_num):
-    return []
+    query = """SELECT Plate, Type, Standard_type, Height
+                    FROM Vehicle
+                    WHERE Plate='""" + str(plate_num) + "';"
+    cursor.execute(query)
+    return cursor.fetchall()
 
 # 5 check if a specific vehicle is parked somewhere
 def check_parking(plate_num):
-    return []
+    query = """SELECT LID, Space_no, Plate, Check_in_date
+                        FROM Vehicle_Parking
+                        WHERE Plate='""" + str(plate_num) + "';"
+    cursor.execute(query)
+    return cursor.fetchall()
 
 # 5.5 check the parking information given PID and space_no
 def check_parking_vehicle(LID, space_no):
@@ -159,20 +191,79 @@ def register_owner(user):
             phone_1: phone1,
             phone_2: phone2,
         } """
-    return True
+
+    last_name = str(user.get('last'))
+    first_name = str(user.get('first'))
+    mid_init = str(user.get('mid'))
+    date_of_birth = str(user.get('dob'))
+    license_number = str(user.get('license'))
+    phone_1 = str(user.get('phone1'))
+    phone_2 = str(user.get('phone2'))
+
+    insert_tuple_p1 = "', '".join([license_number, last_name, mid_init, first_name, date_of_birth])
+    insert_tuple_p2 = "', '".join([license_number, phone_1])
+    insert_tuple_p3 = "', '".join([license_number, phone_2])
+    insert_clause1 = """INSERT INTO Owner 
+                            (Drivers_license_num, Lname, Minit, Fname, Date_of_birth) 
+                            VALUES ( '""" + insert_tuple_p1 + " );"
+    insert_clause2 = """INSERT INTO Owner_Phone 
+                               (Drivers_license_num, Phone_num) 
+                               VALUES ( '""" + insert_tuple_p2 + " );"
+    insert_clause3 = """INSERT INTO Owner_Phone 
+                                   (Drivers_license_num, Phone_num) 
+                                   VALUES ( '""" + insert_tuple_p3 + " );"
+    success = True
+
+    try:
+        cursor.execute(insert_clause1)
+        cursor.execute(insert_clause2)
+        cursor.execute(insert_clause3)
+    except Exception as e:
+        success = False
+        print(e)
+        cnx.rollback()
+    else:
+        cnx.commit()
+
+    return success
 
 # 7 insert information of a vehicle, truck or standard car, into the database
-def register_vehicle(vehicle):
+def register_vehicle(vehicle_info):
     """ vehicle = {
             plate_number: plate,
             vehicle_type: vType,
             vehicle_height: height,
     } """
-    return True
+
+    plate_number = str(vehicle_info.get('plate'))
+    vehicle_type = str(vehicle_info.get('vType'))
+    vehicle_height = str(vehicle_info.get('height'))
+
+    insert_tuple_p = "', '".join([plate_number, vehicle_type, vehicle_height])
+    insert_clause = """INSERT INTO Vehicle
+                               (Plate, Type, Height) 
+                               VALUES ( '""" + insert_tuple_p + " );"
+    success = True
+
+    try:
+        cursor.execute(insert_clause)
+    except Exception as e:
+        success = False
+        print(e)
+        cnx.rollback()
+    else:
+        cnx.commit()
+
+    return success
+
 
 # 8 get the license number of the owner of the given vehicle
 def get_owner(plate_num):
-    return ""
+    query = """SELECT Drivers_license_num, Plate
+                            FROM Vehicle_Owning
+                            WHERE Plate='""" + str(plate_num) + "';"
+    cursor.execute(query)
+    return cursor.fetchall()
 
 # 9 park the vehicle
 def park(park_info):
@@ -266,7 +357,11 @@ def list_owner(ID):
 
 # 12 lists all payment information of the given owner
 def list_payments(license):
-    return []
+    query = """SELECT Drivers_license_num, LID, Amount, Check_in_date, Check_out_date
+                            FROM Payment
+                            WHERE Drivers_license_num='""" + str(license) + "';"
+    cursor.execute(query)
+    return cursor.fetchall()
 
 
 
