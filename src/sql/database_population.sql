@@ -1,82 +1,6 @@
-CREATE TABLE Owner (
-    Drivers_license_num varchar(20) primary key,
-    Lname varchar(50) NOT NULL,
-    Minit char(1),
-    Fname varchar(50) NOT NULL,
-    Date_of_birth varchar(10) NOT NULL
-);
-
-CREATE TABLE Owner_Phone (
-    Drivers_license_num varchar(20),
-    Phone_num integer,
-
-    primary key (Drivers_license_num, Phone_num),
-    foreign key (Drivers_license_num) references Owner (Drivers_license_num)
-);
-
-CREATE TABLE Parking_Lot (
-    LID varchar(3) primary key,
-    Address varchar(200) NOT NULL,
-    Total_space integer NOT NULL
-);
-
-CREATE TABLE Payment (
-    Drivers_license_num varchar(20),
-    LID varchar(3),
-    Amount integer NOT NULL,
-    Check_in_date datetime,
-    Check_out_date datetime,
-
-    primary key (Drivers_license_num, LID, Check_in_date),
-    foreign key (Drivers_license_num) references Owner (Drivers_license_num),
-    foreign key (LID) references Parking_Lot (LID)
-);
-
-CREATE TABLE Parking_Space (
-    LID varchar(3),
-    Space_no integer,
-    Type varchar(10) NOT NULL check(Type='Standard' or Type='Truck'),
-    Is_occupied boolean NOT NULL,
-    Hourly_price integer NOT NULL,
-    Height integer,
-
-    primary key (LID, Space_no),
-    foreign key (LID) references Parking_Lot (LID)
-);
-
-
-CREATE TABLE Vehicle (
-    Plate varchar(10) primary key,
-    Type varchar(10) check(Type='Standard' or Type='Truck'),
-    Standard_type varchar(10) check(Standard_type='Compact' or Standard_type='Noncompact'),
-    Height integer
-);
-
-CREATE TABLE Vehicle_Parking (
-    LID varchar(3),
-    Space_no integer,
-	Plate varchar(10),
-    Check_in_date datetime,
-
-    primary key (LID, Plate, Space_no),
-    foreign key (LID) references Parking_Lot (LID),
-    foreign key (Plate) references Vehicle (Plate)
-);
-
-CREATE TABLE Vehicle_Owning (
-    Drivers_license_num varchar(20),
-    Plate varchar(10),
-
-    primary key (Drivers_license_num, Plate),
-    foreign key (Drivers_license_num) references Owner (Drivers_license_num),
-    foreign key (Plate) references Vehicle (Plate)
-);
-
-
-
 INSERT INTO Parking_Lot (LID, Address, Total_space)
 VALUES
-    ('73', '2858–2932 Dudely Pl, Nashville, TN', 8),
+    ('73', '2858-2932 Dudely Pl, Nashville, TN', 8),
     ('25', '2400 Blakemore Ave, Nashville, TN', 12),
     ('77', '1200 18th Ave S, Nashville, United States', 6);
 
@@ -95,7 +19,6 @@ INSERT INTO Owner_Phone
 VALUES
     ('123456789', 917416476),
 	('123456789', 917416488);
-
 
 INSERT INTO Vehicle
 VALUES
@@ -153,5 +76,12 @@ VALUES
 
 INSERT INTO Vehicle_Parking
 VALUES
-	('73',  0001, 'ABCDEF', '2022-11-16 19:32:04');
+    ('25', 1, 'CCCCCC', '2022-11-19 00:46:29'),
+    ('73', 4, 'FFFFFF', '2022-11-19 00:23:32'),
+    ('77', 4, 'ABCDEF', '2022-11-19 18:20:09'),
+    ('77', 2, 'DDDDDD', '2022-11-19 01:25:16');
 
+INSERT INTO Payment (Drivers_license_num, LID, Amount, Check_in_date, Check_out_date)
+VALUES
+    ('123456789', '73', 70, '2022-11-16 19:32:04', '2022-11-19 17:51:26')
+    ('123456789', '77', 10, '2022-11-19 18:16:38', '2022-11-19 18:16:59');

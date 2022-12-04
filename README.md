@@ -8,15 +8,16 @@ This system is built upon the Material Dashboard 2 React from [Creative Tim](htt
 
 
 ## Project Details
-1. DDL: 11.27.2022
-2. Add comment with name before every code block that you wrote
-3. Work distribution
--  Eric: function 1-7
-- Gloria: SQL files; function 8,9,12,13
-- Toby: function 10, 11
 
+### **Introduction**
 
-**Documentation built by Creative Tim**
+This application allows users to see the available spaces in all parking lots, park and check out their vehicles via a simple click, and pay for each parking session automatically. In this app, a database system will store the user and vehicle information, as well as the up-to-date status of all parking lots and parking spaces. Moreover, it will also save the user’s parking and payment history for administrative and tracing purposes.
+
+### **User Manual**
+
+The complete report for this project, including the user manual, is [here](./Project_Report.pdf).
+
+### **Component Documentation by Creative Tim**
 
 Each element is well presented in very complex documentation.
 
@@ -37,7 +38,7 @@ During the development of this project, we have used many existing resources fro
 
 1. Download and Install NodeJs LTS version from [NodeJs Official Page](https://nodejs.org/en/download/).
 2. Navigate to the root ./ directory of the product and run `yarn install` or `npm install` to install our local dependencies.
-
+3. Run `npm start` to view the website locally in the browser.
 
 
 ## Browser Support
