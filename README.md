@@ -2,7 +2,7 @@
 
 ![version](https://img.shields.io/badge/version-1.0.0-blue.svg) 
 
-This is the repo for the Smart Parking System.
+This is the codebase for the Smart Parking System.
 
 This system is built upon the Material Dashboard 2 React from [Creative Tim](https://www.creative-tim.com/product/material-dashboard-react?ref=readme-mdr).
 
@@ -12,6 +12,12 @@ This system is built upon the Material Dashboard 2 React from [Creative Tim](htt
 ### **Introduction**
 
 This application allows users to see the available spaces in all parking lots, park and check out their vehicles via a simple click, and pay for each parking session automatically. In this app, a database system will store the user and vehicle information, as well as the up-to-date status of all parking lots and parking spaces. Moreover, it will also save the user’s parking and payment history for administrative and tracing purposes.
+
+### **Important Files and Folders**
+
+- `./src/layouts/`: JS files containing frontend codes for web console
+- `./src/sql/`: SQL files containing the SQL source codes
+- `./app.py`: Python file for backend developmenr; integrate with SQL source codes of the required functions
 
 ### **User Manual**
 
