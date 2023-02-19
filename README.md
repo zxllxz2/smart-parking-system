@@ -17,7 +17,7 @@ This application allows users to see the available spaces in all parking lots, p
 
 - `./src/layouts/`: JS files containing frontend codes for web console
 - `./src/sql/`: SQL files containing the SQL source codes
-- `./app.py`: Python file for backend developmenr; integrate with SQL source codes of the required functions
+- `./app.py`: Python file for backend development; integrating with SQL source codes of the required functions
 
 ### **User Manual**
 
